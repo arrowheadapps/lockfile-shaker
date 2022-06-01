@@ -1,0 +1,14 @@
+{
+  "extends": "@tsconfig/node12",
+  "compilerOptions": {
+    "outDir": "lib",
+    "esModuleInterop": false,
+    "declaration": true,
+    "types": [
+      "node"
+    ]
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "lockfile-shaker",
+  "version": "1.0.0",
+  "author": "Arrowhead Apps",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "bin": "lib/bin.js",
+  "files": [
+    "lib/**",
+    "defaults.js"
+  ],
+  "repository": {
+    "url": "git@github.com:arrowheadapps/lockfile-shaker.git"
+  },
+  "engines": {
+    "npm": ">=7"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@tsconfig/node12": "^1.0.9",
+    "@types/node": "^14.18.20",
+    "typescript": "^4.7.2"
+  }
+}
