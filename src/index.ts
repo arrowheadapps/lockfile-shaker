@@ -2,6 +2,10 @@
 Copyright (c) 2022 Arrowhead Apps Ltd.
 */
 
+import { readFile, writeFile } from 'fs/promises';
+import { resolve } from 'path';
+import { exec } from './exec';
+
 export interface PatternGroup {
   /**
    * Packages that can safely run without those packages matching `packages`.
@@ -17,7 +21,8 @@ export interface PatternGroup {
 
 export interface Configuration {
   /**
-   * Packages that will be attempted to be made dev-only.
+   * A pattern group that defines which packages can be made dev-only, 
+   * and which dependants are known to be safe to run without them.
    */
   patterns?: PatternGroup[];
 
@@ -43,9 +48,9 @@ export interface Package {
   dependencies?: {
     [id: string]: string;
   };
-
-  __tentative?: boolean;
 }
+
+export const LOCKFILE_NAME = 'package-lock.json';
 
 /**
  * Refactor the `package-lock.json` (located in the current working directory) 
@@ -53,21 +58,82 @@ export interface Package {
  * 
  * Requires lockfile version 2 or 3 (NPM version 7 onwards).
  */
-export async function refactor(config: Configuration, lockfile: Lockfile) {
+export async function optimise(config: Configuration, lockfile: Lockfile) {
+  if (!lockfile.packages) {
+    throw new Error('Your package-lock.json must be version 2 or greater. Please reinstall with NPM v7 or later to upgrade your package-lock.json file.');
+  }
   for (const path in lockfile.packages) {
-    makePackageDevOnly(config, lockfile as Required<Lockfile>, path);
+    makePackageDevOnly(config, lockfile as Required<Lockfile> & LockfileTentative, path);
   }
 }
 
-export default refactor;
+/**
+ * Loads the lockfile from disk.
+ * @param cwd The directory to load from (defaults to `process.cwd()`).
+ */
+export async function loadLockfile(cwd = process.cwd()) {
+  const lockfilePath = resolve(cwd, LOCKFILE_NAME);
+  const lockfile: Lockfile = JSON.parse(await readFile(lockfilePath, 'utf-8'));
+  return lockfile;
+}
+
+/**
+ * Emits the given lockfile content to disk, respecting NPM formatting configuration.
+ * @param lockfile The content to be written to disk.
+ * @param cwd The directory to load from (defaults to `process.cwd()`).
+ */
+export async function outputLockfile(lockfile: Lockfile, cwd = process.cwd()) {
+  const lockfilePath = resolve(cwd, LOCKFILE_NAME);
+  const prettyPrint = await getLockFileFormat(cwd);
+  const json = JSON.stringify(lockfile, undefined, prettyPrint ? 2 : undefined)
+  await writeFile(lockfilePath, json);
+}
+
+/**
+ * Merges multiple configurations together.
+ */
+export function mergeConfigurations(...configs: Configuration[]): Configuration {
+  const config: Required<Configuration> = {
+    patterns: [],
+    forcePatterns: [],
+  };
+  for (const c of configs) {
+    if (c.patterns) {
+      config.patterns.push(...c.patterns)
+    }
+    if (c.forcePatterns) {
+      c.forcePatterns.push(...c.forcePatterns);
+    }
+  }
+  return config;
+}
+
+export default optimise;
 
 
+
+/**
+ * Determines whether the NPM configuration specifies that the lockfile should be pretty-formatted.
+ */
+async function getLockFileFormat(cwd: string) {
+  const stdout = await exec('npm config get format-package-lock', { cwd, encoding: 'utf-8', shell: true });
+  return stdout !== 'false';
+}
+
+
+interface LockfileTentative {
+  packages: {
+    [path: string]: {
+      __tentative?: boolean;
+    }
+  }
+}
 
 /**
  * Recursively checks the dependants of this package to make it dev-only if possible.
  * If it is made dev-only, then it recursively tries to make it's dependencies dev-only also.
  */
-function makePackageDevOnly(config: Readonly<Configuration>, lockfile: Required<Lockfile>, path: string, tree: string[] = []) {
+function makePackageDevOnly(config: Readonly<Configuration>, lockfile: Required<Lockfile> & LockfileTentative, path: string, tree: string[] = []) {
   if (path === '') {
     return false;
   }
