@@ -4,7 +4,8 @@
 Copyright (c) 2022 Arrowhead Apps Ltd.
 */
 
-import optimise, { loadLockfile, outputLockfile } from './index';
+import optimise, { Configuration, loadLockfile, mergeConfigurations, outputLockfile } from './index';
+import { resolve } from 'path';
 
 run().catch(console.error);
 
@@ -17,11 +18,32 @@ export async function run(cwd = process.cwd()) {
     return;
   }
 
-  // Read in the configuration
-  const config = require('../defaults.js');
-
+  
   // Read in the lockfile
   const lockfile = await loadLockfile(cwd);
+
+
+  // Try to find the configuration script
+  let config: Configuration | undefined;
+  try {
+    config = require(resolve(cwd, 'lockfile-shaker.config.js'));
+  } catch {
+    // Config doesn't exist
+  }
+
+
+  if (!config) {
+    // Load the default config
+    config = require('../defaults.js') as Configuration;
+
+    // Merge in the plugin configs
+    for (const path in (lockfile.packages || {})) {
+      if (path.startsWith('lockfile-shaker-')) {
+        config = mergeConfigurations(config, require(resolve(cwd, path, 'defaults.js')));
+      }
+    }
+  }
+
 
   // Initial totals
   const totalCount = Object.values(lockfile.packages || {}).length

@@ -5,6 +5,11 @@
   "license": "MIT",
   "main": "lib/index.js",
   "bin": "lib/bin.js",
+  "keywords": [
+    "package-lock",
+    "lockfile",
+    "treeshaking"
+  ],
   "files": [
     "lib/**",
     "defaults.js"
