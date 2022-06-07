@@ -4,7 +4,7 @@
 Copyright (c) 2022 Arrowhead Apps Ltd.
 */
 
-import optimise, { Configuration, loadLockfile, mergeConfigurations, outputLockfile } from './index';
+import optimise, { Configuration, loadLockfile, mergeConfigurations, outputLockfile, defaults } from './index';
 import { resolve } from 'path';
 
 run().catch(console.error);
@@ -17,6 +17,7 @@ export async function run(cwd = process.cwd()) {
     // Don't run on the npm ci command
     return;
   }
+  console.log('\n');
 
   
   // Read in the lockfile
@@ -34,11 +35,12 @@ export async function run(cwd = process.cwd()) {
 
   if (!config) {
     // Load the default config
-    config = require('../defaults.js') as Configuration;
+    config = defaults;
 
     // Merge in the plugin configs
     for (const path in (lockfile.packages || {})) {
-      if (path.startsWith('lockfile-shaker-')) {
+      if (path.startsWith('node_modules/lockfile-shaker-')) {
+        console.log(`Merging configuration from ${path.slice(13)}`);
         config = mergeConfigurations(config, require(resolve(cwd, path, 'defaults.js')));
       }
     }
@@ -55,5 +57,5 @@ export async function run(cwd = process.cwd()) {
 
   // Resulting totals
   const newDevCount = Object.values(lockfile.packages || {}).filter(p => p.dev).length;
-  console.log(`\nChanged ${newDevCount - originalDevCount} packages to dev-only. Production package count reduced from ${totalCount - originalDevCount} to ${totalCount - newDevCount}.`);
+  console.log(`Changed ${newDevCount - originalDevCount} packages to dev-only. Production package count reduced from ${totalCount - originalDevCount} to ${totalCount - newDevCount}.`);
 }

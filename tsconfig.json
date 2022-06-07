@@ -1,6 +1,7 @@
 {
   "extends": "@tsconfig/node12",
   "compilerOptions": {
+    "moduleResolution": "nodenext",
     "outDir": "lib",
     "esModuleInterop": false,
     "declaration": true,

@@ -4,7 +4,7 @@ Copyright (c) 2022 Arrowhead Apps Ltd.
 
 import { readFile, writeFile } from 'fs/promises';
 import { resolve } from 'path';
-import { exec } from './exec';
+import * as defaults from '../defaults.js';
 
 export interface PatternGroup {
   /**
@@ -51,6 +51,7 @@ export interface Package {
 }
 
 export const LOCKFILE_NAME = 'package-lock.json';
+export { defaults };
 
 /**
  * Refactor the `package-lock.json` (located in the current working directory) 
@@ -66,6 +67,8 @@ export async function optimise(config: Configuration, lockfile: Lockfile) {
     makePackageDevOnly(config, lockfile as Required<Lockfile> & LockfileTentative, path);
   }
 }
+
+export default optimise;
 
 /**
  * Loads the lockfile from disk.
@@ -92,7 +95,7 @@ export async function outputLockfile(lockfile: Lockfile, cwd = process.cwd()) {
 /**
  * Merges multiple configurations together.
  */
-export function mergeConfigurations(...configs: Configuration[]): Configuration {
+export function mergeConfigurations(...configs: Configuration[]) {
   const config: Required<Configuration> = {
     patterns: [],
     forcePatterns: [],
@@ -102,21 +105,19 @@ export function mergeConfigurations(...configs: Configuration[]): Configuration 
       config.patterns.push(...c.patterns)
     }
     if (c.forcePatterns) {
-      c.forcePatterns.push(...c.forcePatterns);
+      config.forcePatterns.push(...c.forcePatterns);
     }
   }
   return config;
 }
-
-export default optimise;
-
 
 
 /**
  * Determines whether the NPM configuration specifies that the lockfile should be pretty-formatted.
  */
 async function getLockFileFormat(cwd: string) {
-  const stdout = await exec('npm config get format-package-lock', { cwd, encoding: 'utf-8', shell: true });
+  const { execa } = await import('execa');
+  const { stdout } = await execa('npm config get format-package-lock', { cwd, encoding: 'utf-8', shell: true });
   return stdout !== 'false';
 }
 
@@ -133,7 +134,7 @@ interface LockfileTentative {
  * Recursively checks the dependants of this package to make it dev-only if possible.
  * If it is made dev-only, then it recursively tries to make it's dependencies dev-only also.
  */
-function makePackageDevOnly(config: Readonly<Configuration>, lockfile: Required<Lockfile> & LockfileTentative, path: string, tree: string[] = []) {
+function makePackageDevOnly(config: Readonly<Configuration>, lockfile: Required<Readonly<Lockfile>> & LockfileTentative, path: string, tree: string[] = []) {
   if (path === '') {
     return false;
   }

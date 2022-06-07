@@ -1,10 +1,9 @@
+'use strict';
+
 /**
 Copyright (c) 2022 Arrowhead Apps Ltd.
 */
 
-/**
- * @type {import('.').Configuration}
- */
 const config = {
   patterns: [
     {
@@ -12,9 +11,9 @@ const config = {
         /^$/, // Root package only
       ],
       packages: [
-        /node_modules\/lockfile-shaker$/,
+        /node_modules\/lockfile-shaker/,
       ],
-    }
+    },
   ],
   forcePatterns: [
     /\/@types/,

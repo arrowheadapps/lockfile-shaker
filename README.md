@@ -53,7 +53,7 @@ In the example below, we never want `@types/...` packages to be installed in pro
 
 ```JavaScript
 // lockfile-shaker.config.js
-const { mergeConfigurations } = require('lockfile-shaker');
+const { mergeConfigurations, defaults } = require('lockfile-shaker');
 const strapiConfig = require('lockfile-shaker-strapi');
 
 const myConfig = {
@@ -96,7 +96,7 @@ const myConfig = {
   ],
 };
 
-module.exports = mergeConfigurations(myConfig, strapiConfig);
+module.exports = mergeConfigurations(myConfig, defaults, strapiConfig);
 ```
 
 
@@ -105,7 +105,7 @@ module.exports = mergeConfigurations(myConfig, strapiConfig);
 You can also use `lockfile-shaker` in your own JavaScript. For example:
 
 ```JavaScript
-const { optimise, loadLockfile, outputLockfile, mergeConfigurations } = require('lockfile-shaker');
+const { optimise, loadLockfile, outputLockfile, mergeConfigurations, defaults } = require('lockfile-shaker');
 const strapiConfig = require('lockfile-shaker-strapi/defaults.js');
 
 const config = {
@@ -119,7 +119,7 @@ const config = {
 
 // Load, optimise, and output your lockfile
 const lockfile = await loadLockfile();
-await optimise(lockfile, mergeConfigurations(config, strapiConfig));
+await optimise(lockfile, mergeConfigurations(config, defaults, strapiConfig));
 await outputLockfile(lockfile);
 ```
 
