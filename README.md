@@ -1,5 +1,10 @@
 # lockfile-shaker
 
+[![NPM Version](https://img.shields.io/npm/v/lockfile-shaker/latest)](https://www.npmjs.org/package/lockfile-shaker)
+[![Monthly download on NPM](https://img.shields.io/npm/dm/lockfile-shaker)](https://www.npmjs.org/package/lockfile-shaker)
+[![Snyk Vulnerabilities](https://img.shields.io/snyk/vulnerabilities/npm/lockfile-shaker)](https://snyk.io/test/npm/lockfile-shaker)
+[![GitHub last commit](https://img.shields.io/github/last-commit/arrowheadapps/lockfile-shaker)](https://github.com/arrowheadapps/lockfile-shaker)
+
 Optimise your `package-lock.json` for production deployments. This safely edits your `package-lock.json` to make certain packages dev-only, based on rules you define.
 
 In this you can slim down the size and install time of your production deployments when using  `npm ci --only production`.
