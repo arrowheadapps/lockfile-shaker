@@ -24,12 +24,12 @@ Install `lockfile-shaker` (as a dev-dependency):
 npm i -D lockfile-shaker
 ```
 
-Add `lockfile-shaker` to your postinstall script:
+Add `lockfile-shaker` to your postinstall script (this will execute `lockfile-shaker` only on `npm install`, not npm `npm ci`):
 
 ```JSON
 {
   "scripts" : {
-    "postinstall": "lockfile-shaker"
+    "postinstall": "node -e \"(process.env.npm_command != 'ci') && require('lockfile-shaker/lib/bin.js')\""
   }
 }
 ```
