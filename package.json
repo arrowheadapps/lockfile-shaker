@@ -1,6 +1,6 @@
 {
   "name": "lockfile-shaker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Arrowhead Apps",
   "license": "MIT",
   "main": "lib/index.js",
